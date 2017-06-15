@@ -34,7 +34,6 @@ fi
 echo "action: $action"
 echo "serviceName: $serviceName"
 echo "RDECK_BASE: $RDECK_BASE"
-jarFullPath=$RDECK_BASE/$jarFullPath
 echo "jarFullPath: $jarFullPath"
 
 echo_success() {
@@ -47,26 +46,33 @@ echo_failure() {
     return 1
 }
 
-rundeckd="${JAVA_HOME}/bin/java ${RDECK_JVM} -jar ${jarFullPath}"
-RETVAL=0
-PID_FILE=$RDECK_BASE/var/run/${serviceName}.pid
-LOK_FILE=$RDECK_BASE/var/lock/subsys/$serviceName
-servicelog=$RDECK_BASE/var/log/${serviceName}.log
-
-echo "PID_FILE: $PID_FILE"
-echo "LOK_FILE: $LOK_FILE"
-echo "servicelog: $servicelog"
-
-echo
-
-[ -w $RDECK_BASE/var ] || {
+[ -w $RDECK_BASE ] || {
     echo "RDECK_BASE dir not writable: $RDECK_BASE"
     exit 1 ;
 }
 
-mkdir -p $RDECK_BASE/var/run
-mkdir -p $RDECK_BASE/var/log
-mkdir -p $RDECK_BASE/var/lock/subsys
+JAR_DIR=$RDECK_BASE/$serviceName/jar
+PID_DIR=$RDECK_BASE/$serviceName/pid
+LOK_DIR=$RDECK_BASE/$serviceName/lock
+LOG_DIR=$RDECK_BASE/$serviceName/log
+
+mkdir -p $JAR_DIR
+mkdir -p $PID_DIR
+mkdir -p $LOK_DIR
+mkdir -p $LOG_DIR
+
+JAR_FILE=$JAR_DIR/${serviceName}.jar
+PID_FILE=$PID_DIR/${serviceName}.pid
+LOK_FILE=$LOK_DIR/$serviceName
+servicelog=$LOG_DIR/${serviceName}.log
+
+echo "JAR_FILE: $JAR_FILE"
+echo "PID_FILE: $PID_FILE"
+echo "LOK_FILE: $LOK_FILE"
+echo "servicelog: $servicelog"
+
+rundeckd="${JAVA_HOME}/bin/java ${RDECK_JVM} -jar ${jarFullPath}"
+RETVAL=0
 
 start() {
     RETVAL=0
