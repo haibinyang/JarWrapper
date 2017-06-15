@@ -5,11 +5,14 @@
 #     - env vars: [BASE_DIR, RDECK_PORT, jarFullPath]
 #     - standard RDECK_PORT values: [http: 4440, https: 4443]
 
-
-action=$4
 serviceName=$1
-BASE_DIR=$2
-jarFullPath=$3
+jarFileName=$2
+action=$3
+
+UPLOAD_DIR="/home/yanghaibin/deployWorkspace/upload"
+BASE_DIR="/home/yanghaibin/deployWorkspace/instance"
+
+jarFullPath=$UPLOAD_DIR/$jarFileName
 
 if [ -z $action ]; then
   echo "action is unset";
