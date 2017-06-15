@@ -2,7 +2,7 @@
 #
 # rundeckd    Startup script for the RunDeck Launcher install
 #   paramaters:
-#     - env vars: [BASE_DIR, RDECK_PORT, jarFullPath]
+#     - env vars: [INSTANCE_DIR, RDECK_PORT, jarFullPath]
 #     - standard RDECK_PORT values: [http: 4440, https: 4443]
 
 serviceName=$1
@@ -10,7 +10,7 @@ jarFileName=$2
 action=$3
 
 UPLOAD_DIR="/home/yanghaibin/deployWorkspace/upload"
-BASE_DIR="/home/yanghaibin/deployWorkspace/instance"
+INSTANCE_DIR="/home/yanghaibin/deployWorkspace/instance"
 
 jarFullPath=$UPLOAD_DIR/$jarFileName
 
@@ -24,8 +24,8 @@ if [ -z $serviceName ]; then
   exit 1
 fi
 
-if [ -z $BASE_DIR ]; then
-  echo "BASE_DIR is unset";
+if [ -z $INSTANCE_DIR ]; then
+  echo "INSTANCE_DIR is unset";
   exit 1
 fi
 
@@ -36,7 +36,7 @@ fi
 
 echo "action: $action"
 echo "serviceName: $serviceName"
-echo "BASE_DIR: $BASE_DIR"
+echo "INSTANCE_DIR: $INSTANCE_DIR"
 echo "jarFullPath: $jarFullPath"
 
 echo_success() {
@@ -49,15 +49,15 @@ echo_failure() {
     return 1
 }
 
-[ -w $BASE_DIR ] || {
-    echo "BASE_DIR dir not writable: $BASE_DIR"
+[ -w $INSTANCE_DIR ] || {
+    echo "INSTANCE_DIR dir not writable: $INSTANCE_DIR"
     exit 1 ;
 }
 
-JAR_DIR=$BASE_DIR/$serviceName/jar
-PID_DIR=$BASE_DIR/$serviceName/pid
-LOK_DIR=$BASE_DIR/$serviceName/lock
-LOG_DIR=$BASE_DIR/$serviceName/log
+JAR_DIR=$INSTANCE_DIR/$serviceName/jar
+PID_DIR=$INSTANCE_DIR/$serviceName/pid
+LOK_DIR=$INSTANCE_DIR/$serviceName/lock
+LOG_DIR=$INSTANCE_DIR/$serviceName/log
 
 mkdir -p $JAR_DIR
 mkdir -p $PID_DIR
