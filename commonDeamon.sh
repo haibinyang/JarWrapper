@@ -2,13 +2,13 @@
 #
 # rundeckd    Startup script for the RunDeck Launcher install
 #   paramaters:
-#     - env vars: [RDECK_BASE, RDECK_PORT, jarFullPath]
+#     - env vars: [BASE_DIR, RDECK_PORT, jarFullPath]
 #     - standard RDECK_PORT values: [http: 4440, https: 4443]
 
 
 action=$4
 serviceName=$1
-RDECK_BASE=$2
+BASE_DIR=$2
 jarFullPath=$3
 
 if [ -z $action ]; then
@@ -21,8 +21,8 @@ if [ -z $serviceName ]; then
   exit 1
 fi
 
-if [ -z $RDECK_BASE ]; then
-  echo "RDECK_BASE is unset";
+if [ -z $BASE_DIR ]; then
+  echo "BASE_DIR is unset";
   exit 1
 fi
 
@@ -33,7 +33,7 @@ fi
 
 echo "action: $action"
 echo "serviceName: $serviceName"
-echo "RDECK_BASE: $RDECK_BASE"
+echo "BASE_DIR: $BASE_DIR"
 echo "jarFullPath: $jarFullPath"
 
 echo_success() {
@@ -46,15 +46,15 @@ echo_failure() {
     return 1
 }
 
-[ -w $RDECK_BASE ] || {
-    echo "RDECK_BASE dir not writable: $RDECK_BASE"
+[ -w $BASE_DIR ] || {
+    echo "BASE_DIR dir not writable: $BASE_DIR"
     exit 1 ;
 }
 
-JAR_DIR=$RDECK_BASE/$serviceName/jar
-PID_DIR=$RDECK_BASE/$serviceName/pid
-LOK_DIR=$RDECK_BASE/$serviceName/lock
-LOG_DIR=$RDECK_BASE/$serviceName/log
+JAR_DIR=$BASE_DIR/$serviceName/jar
+PID_DIR=$BASE_DIR/$serviceName/pid
+LOK_DIR=$BASE_DIR/$serviceName/lock
+LOG_DIR=$BASE_DIR/$serviceName/log
 
 mkdir -p $JAR_DIR
 mkdir -p $PID_DIR
@@ -64,12 +64,12 @@ mkdir -p $LOG_DIR
 JAR_FILE=$JAR_DIR/${serviceName}.jar
 PID_FILE=$PID_DIR/${serviceName}.pid
 LOK_FILE=$LOK_DIR/$serviceName
-servicelog=$LOG_DIR/${serviceName}.log
+LOG_FILE=$LOG_DIR/${serviceName}.log
 
 echo "JAR_FILE: $JAR_FILE"
 echo "PID_FILE: $PID_FILE"
 echo "LOK_FILE: $LOK_FILE"
-echo "servicelog: $servicelog"
+echo "LOG_FILE: $LOG_FILE"
 
 rundeckd="${JAVA_HOME}/bin/java ${RDECK_JVM} -jar ${jarFullPath}"
 RETVAL=0
@@ -81,7 +81,7 @@ start() {
 	echo_success; #already running
 	return $RETVAL
     }
-    nohup $rundeckd >>$servicelog 2>&1 &
+    nohup $rundeckd >>$LOG_FILE 2>&1 &
     RETVAL=$?
     PID=$!
     echo $PID > $PID_FILE
