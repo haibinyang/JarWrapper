@@ -5,36 +5,37 @@
 #     - env vars: [RDECK_BASE, RDECK_PORT, RDECK_LAUNCHER]
 #     - standard RDECK_PORT values: [http: 4440, https: 4443]
 
-# RDECK_BASE must be set and exist
-# [ -z "$RDECK_BASE" -o ! -d "$RDECK_BASE" ] && {
-#     echo "RDECK_BASE not set or does not exist" ;
-#     exit 1 ;
-# }
-# 临时写死
-RDECK_BASE=/home/yanghaibin/commonDeaomn/c1
 
-# Source installation profile
-# . $RDECK_BASE/etc/profile
-# 临时屏蔽
+action=$4
+prog=$1
+RDECK_BASE=$2
+RDECK_LAUNCHER=$3
 
-# Get the Launcher Jar path
-# 不从环境变量取
-# [ -z "$RDECK_LAUNCHER" ] && {
-#     # Defaults to location of first startup
-#     RDECK_LAUNCHER='/home/yanghaibin/Desktop/Parallels Shared Folders/Home/Downloads/SWBack/p1/smarthome-register-server-0.0.1-20170615.014003-3.jar'; #set by install
-# }
-# [ -r "$RDECK_LAUNCHER" ] || {
-#     echo "RDECK_LAUNCHER not found: $RDECK_LAUNCHER"
-#     exit 1;
-# }
+if [ -z $action ]; then
+  echo "action is unset";
+  exit 1
+fi
 
+if [ -z $prog ]; then
+  echo "prog is unset";
+  exit 1
+fi
 
-# RDECK_LAUNCHER=$2
-RDECK_LAUNCHER='/home/yanghaibin/commonDeaomn/c1/smarthome-register-server-0.0.1-20170615.014003-3.jar';
-echo "LAUNCHER: $RDECK_LAUNCHER"
+if [ -z $RDECK_BASE ]; then
+  echo "RDECK_BASE is unset";
+  exit 1
+fi
 
-# TODO: 要检查RDECK_LAUNCHER是否有值
+if [ -z $RDECK_LAUNCHER ]; then
+  echo "RDECK_LAUNCHER is unset";
+  exit 1
+fi
 
+echo "action: $action"
+echo "prog: $prog"
+echo "RDECK_BASE: $RDECK_BASE"
+RDECK_LAUNCHER=$RDECK_BASE/$RDECK_LAUNCHER
+echo "RDECK_LAUNCHER: $RDECK_LAUNCHER"
 
 echo_success() {
     echo "[OK]"
@@ -46,12 +47,17 @@ echo_failure() {
     return 1
 }
 
-prog="rundeckd"
 rundeckd="${JAVA_HOME}/bin/java ${RDECK_JVM} -jar ${RDECK_LAUNCHER}"
 RETVAL=0
 PID_FILE=$RDECK_BASE/var/run/${prog}.pid
 LOK_FILE=$RDECK_BASE/var/lock/subsys/$prog
-servicelog=$RDECK_BASE/var/log/service.log
+servicelog=$RDECK_BASE/var/log/${prog}.log
+
+echo "PID_FILE: $PID_FILE"
+echo "LOK_FILE: $LOK_FILE"
+echo "servicelog: $servicelog"
+
+echo
 
 [ -w $RDECK_BASE/var ] || {
     echo "RDECK_BASE dir not writable: $RDECK_BASE"
@@ -133,7 +139,7 @@ status() {
     return $RETVAL
 }
 
-case "$1" in
+case "$action" in
     start)
 	start
 	;;
