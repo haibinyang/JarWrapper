@@ -2,14 +2,14 @@
 #
 # rundeckd    Startup script for the RunDeck Launcher install
 #   paramaters:
-#     - env vars: [RDECK_BASE, RDECK_PORT, RDECK_LAUNCHER]
+#     - env vars: [RDECK_BASE, RDECK_PORT, jarFullPath]
 #     - standard RDECK_PORT values: [http: 4440, https: 4443]
 
 
 action=$4
 serviceName=$1
 RDECK_BASE=$2
-RDECK_LAUNCHER=$3
+jarFullPath=$3
 
 if [ -z $action ]; then
   echo "action is unset";
@@ -26,16 +26,16 @@ if [ -z $RDECK_BASE ]; then
   exit 1
 fi
 
-if [ -z $RDECK_LAUNCHER ]; then
-  echo "RDECK_LAUNCHER is unset";
+if [ -z $jarFullPath ]; then
+  echo "jarFullPath is unset";
   exit 1
 fi
 
 echo "action: $action"
 echo "serviceName: $serviceName"
 echo "RDECK_BASE: $RDECK_BASE"
-RDECK_LAUNCHER=$RDECK_BASE/$RDECK_LAUNCHER
-echo "RDECK_LAUNCHER: $RDECK_LAUNCHER"
+jarFullPath=$RDECK_BASE/$jarFullPath
+echo "jarFullPath: $jarFullPath"
 
 echo_success() {
     echo "[OK]"
@@ -47,7 +47,7 @@ echo_failure() {
     return 1
 }
 
-rundeckd="${JAVA_HOME}/bin/java ${RDECK_JVM} -jar ${RDECK_LAUNCHER}"
+rundeckd="${JAVA_HOME}/bin/java ${RDECK_JVM} -jar ${jarFullPath}"
 RETVAL=0
 PID_FILE=$RDECK_BASE/var/run/${serviceName}.pid
 LOK_FILE=$RDECK_BASE/var/lock/subsys/$serviceName
