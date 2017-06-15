@@ -7,7 +7,7 @@
 
 
 action=$4
-prog=$1
+serviceName=$1
 RDECK_BASE=$2
 RDECK_LAUNCHER=$3
 
@@ -16,8 +16,8 @@ if [ -z $action ]; then
   exit 1
 fi
 
-if [ -z $prog ]; then
-  echo "prog is unset";
+if [ -z $serviceName ]; then
+  echo "serviceName is unset";
   exit 1
 fi
 
@@ -32,7 +32,7 @@ if [ -z $RDECK_LAUNCHER ]; then
 fi
 
 echo "action: $action"
-echo "prog: $prog"
+echo "serviceName: $serviceName"
 echo "RDECK_BASE: $RDECK_BASE"
 RDECK_LAUNCHER=$RDECK_BASE/$RDECK_LAUNCHER
 echo "RDECK_LAUNCHER: $RDECK_LAUNCHER"
@@ -49,9 +49,9 @@ echo_failure() {
 
 rundeckd="${JAVA_HOME}/bin/java ${RDECK_JVM} -jar ${RDECK_LAUNCHER}"
 RETVAL=0
-PID_FILE=$RDECK_BASE/var/run/${prog}.pid
-LOK_FILE=$RDECK_BASE/var/lock/subsys/$prog
-servicelog=$RDECK_BASE/var/log/${prog}.log
+PID_FILE=$RDECK_BASE/var/run/${serviceName}.pid
+LOK_FILE=$RDECK_BASE/var/lock/subsys/$serviceName
+servicelog=$RDECK_BASE/var/log/${serviceName}.log
 
 echo "PID_FILE: $PID_FILE"
 echo "LOK_FILE: $LOK_FILE"
@@ -70,7 +70,7 @@ mkdir -p $RDECK_BASE/var/lock/subsys
 
 start() {
     RETVAL=0
-    printf "%s" "Starting $prog: "
+    printf "%s" "Starting $serviceName: "
     [ -f $LOK_FILE -a -f $PID_FILE ] && {
 	echo_success; #already running
 	return $RETVAL
@@ -90,7 +90,7 @@ start() {
 
 stop() {
     RETVAL=0
-    printf "%s" "Stopping $prog: "
+    printf "%s" "Stopping $serviceName: "
     [ ! -f $PID_FILE ] && {
 	echo_success; #already stopped
 	return $RETVAL
@@ -118,11 +118,11 @@ stop() {
 
 status() {
     RETVAL=0
-    printf "%s" "Status $prog: "
+    printf "%s" "Status $serviceName: "
     test -f "$PID_FILE"
     RETVAL=$?
     [ $RETVAL -eq 0 ] || {
-	echo "$prog is stopped";
+	echo "$serviceName is stopped";
 	return 3;
     }
     echo "4"
@@ -130,10 +130,10 @@ status() {
     ps -p "$PID" >/dev/null
     RETVAL=$?
     [ $RETVAL -eq 0 ] && {
-	echo "$prog is running (pid=$PID, port=$RDECK_PORT)"
+	echo "$serviceName is running (pid=$PID, port=$RDECK_PORT)"
   echo "5"
     } || {
-	echo "$prog dead but pid file exists"
+	echo "$serviceName dead but pid file exists"
   echo "6"
     }
     return $RETVAL
