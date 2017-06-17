@@ -1,1 +1,4 @@
 #!/bin/bash
+
+echo "I am mockRunDeck"
+pwd
