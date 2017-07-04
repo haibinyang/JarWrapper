@@ -1,18 +1,28 @@
 #!/bin/bash
 #
-# rundeckd    Startup script for the RunDeck Launcher install
+# jarWrapper    Startup script for the RunDeck Launcher install
 #   paramaters:
-#     - env vars: [INSTANCE_DIR, RDECK_PORT, jarFullPath]
+#     - env vars: []
 #     - standard RDECK_PORT values: [http: 4440, https: 4443]
 
-serviceName=$1
-jarFileName=$2
-action=$3
+# 主目录
+BASE_DIR="/home/yanghaibin/deployWorkspace"
 
-UPLOAD_DIR="/home/yanghaibin/deployWorkspace/upload"
-INSTANCE_DIR="/home/yanghaibin/deployWorkspace/instance"
+# 检查主目录是否可写
+[ -w $BASE_DIR ] || {
+    echo "BASE_DIR dir not writable: $BASE_DIR"
+    exit 1;
+}
 
-jarFullPath=$UPLOAD_DIR/$jarFileName
+# 二级目录：upload和instance
+UPLOAD_DIR="$BASE_DIR/upload"
+INSTANCE_DIR="$BASE_DIR/instance"
+mkdir -p $UPLOAD_DIR
+mkdir -p $INSTANCE_DIR
+
+# 读取参数
+action=$1
+serviceName=$2
 
 if [ -z $action ]; then
   echo "action is unset";
@@ -24,20 +34,49 @@ if [ -z $serviceName ]; then
   exit 1
 fi
 
-if [ -z $INSTANCE_DIR ]; then
-  echo "INSTANCE_DIR is unset";
-  exit 1
-fi
-
-if [ -z $jarFullPath ]; then
-  echo "jarFullPath is unset";
-  exit 1
-fi
-
 echo "action: $action"
 echo "serviceName: $serviceName"
-echo "INSTANCE_DIR: $INSTANCE_DIR"
-echo "jarFullPath: $jarFullPath"
+
+# 创建serviceName下的子目录
+JAR_DIR=$INSTANCE_DIR/$serviceName/jar
+PID_DIR=$INSTANCE_DIR/$serviceName/pid
+LOK_DIR=$INSTANCE_DIR/$serviceName/lock
+LOG_DIR=$INSTANCE_DIR/$serviceName/log
+
+mkdir -p $JAR_DIR
+mkdir -p $PID_DIR
+mkdir -p $LOK_DIR
+mkdir -p $LOG_DIR
+
+# 所有操作都要使用到pid, lock文件
+PID_FILE=$PID_DIR/pid
+LOK_FILE=$LOK_DIR/lock
+echo "PID_FILE: $PID_FILE"
+echo "LOK_FILE: $LOK_FILE"
+
+
+# TODO
+uploadJarFilePath=$UPLOAD_DIR/$jarFileName
+
+# head 软链接
+
+
+#JAR_FILE=$JAR_DIR/${serviceName}.jar
+#init和replaceJar才要使用到
+#平时是使用header指向的jar吧
+
+JAR_FILE=$JAR_DIR/head #指向真实的 jar 的软链接
+
+
+
+echo "JAR_FILE: $JAR_FILE"
+
+
+
+
+# 其它
+RETVAL=0
+DATE=`/bin/date +%Y%m%d-%H%M%S`
 
 echo_success() {
     echo "[OK]"
@@ -49,35 +88,39 @@ echo_failure() {
     return 1
 }
 
-[ -w $INSTANCE_DIR ] || {
-    echo "INSTANCE_DIR dir not writable: $INSTANCE_DIR"
-    exit 1 ;
+init() {
+    RETVAL=0
+    echo "init"
+    return $RETVAL
 }
 
-JAR_DIR=$INSTANCE_DIR/$serviceName/jar
-PID_DIR=$INSTANCE_DIR/$serviceName/pid
-LOK_DIR=$INSTANCE_DIR/$serviceName/lock
-LOG_DIR=$INSTANCE_DIR/$serviceName/log
+replacejar() {
+    RETVAL=0
+    echo "replacejar"
 
-mkdir -p $JAR_DIR
-mkdir -p $PID_DIR
-mkdir -p $LOK_DIR
-mkdir -p $LOG_DIR
+    jarFileName=$3
+    if [ -z $jarFullPath ]; then
+      echo "jarFullPath is unset";
+      return 1
+    fi
+    echo "jarFileName: $jarFileName"
 
-JAR_FILE=$JAR_DIR/${serviceName}.jar
-PID_FILE=$PID_DIR/${serviceName}.pid
-LOK_FILE=$LOK_DIR/$serviceName
-LOG_FILE=$LOG_DIR/${serviceName}.log
+# 创建一个软链接
 
-echo "JAR_FILE: $JAR_FILE"
-echo "PID_FILE: $PID_FILE"
-echo "LOK_FILE: $LOK_FILE"
-echo "LOG_FILE: $LOG_FILE"
-
-rundeckd="${JAVA_HOME}/bin/java ${RDECK_JVM} -jar ${jarFullPath}"
-RETVAL=0
+    return $RETVAL
+}
 
 start() {
+    jarFullPath=$JAR_DIR/head
+    # 检查是否存在
+    
+
+
+    rundeckd="${JAVA_HOME}/bin/java -jar ${jarFullPath}"
+
+    LOG_FILE=$LOG_DIR/$DATE.log
+    echo "LOG_FILE: $LOG_FILE"
+
     RETVAL=0
     printf "%s" "Starting $serviceName: "
     [ -f $LOK_FILE -a -f $PID_FILE ] && {
@@ -134,21 +177,24 @@ status() {
 	echo "$serviceName is stopped";
 	return 3;
     }
-    echo "4"
     PID=`cat $PID_FILE`
     ps -p "$PID" >/dev/null
     RETVAL=$?
     [ $RETVAL -eq 0 ] && {
 	echo "$serviceName is running (pid=$PID, port=$RDECK_PORT)"
-  echo "5"
     } || {
 	echo "$serviceName dead but pid file exists"
-  echo "6"
     }
     return $RETVAL
 }
 
 case "$action" in
+    init)
+  init
+  ;;
+    replacejar)
+  stop
+  ;;
     start)
 	start
 	;;
@@ -166,7 +212,8 @@ case "$action" in
 	fi
 	;;
     status)
-	status $rundeckd
+	#status $rundeckd #临时去除
+  status
 	RETVAL=$?
 	;;
     *)
@@ -174,5 +221,4 @@ case "$action" in
 	RETVAL=1
 esac
 
-echo "8"
 exit $RETVAL
